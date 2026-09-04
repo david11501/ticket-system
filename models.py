@@ -9,3 +9,14 @@ class Ticket(Base):
     titlu=Column(String)
     descriere=Column(String)
     status=Column(String, default="nou")
+    severitate=Column(String, nullable=True)
+    categorie=Column(String, nullable=True)
+    sfaturi=Column(String, nullable=True)
+    inginer_id=Column(Integer, nullable=True)
+
+class Inginer(Base):
+    __tablename__="ingineri"
+    id=Column(Integer, primary_key=True)
+    nume=Column(String)
+    specializare=Column(String)
+    nr_tichete_active=Column(Integer,default=0)

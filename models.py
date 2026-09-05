@@ -20,3 +20,11 @@ class Inginer(Base):
     nume=Column(String)
     specializare=Column(String)
     nr_tichete_active=Column(Integer,default=0)
+
+class User(Base):
+    __tablename__="users"
+    id=Column(Integer, primary_key=True)
+    username=Column(String, unique=True)
+    password_hash=Column(String)
+    rol=Column(String)
+    inginer_id=Column(Integer, nullable=True)

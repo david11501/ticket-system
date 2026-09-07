@@ -10,18 +10,24 @@ from auth import hash_parola
 from models import Inginer
 from auth import verifica_parola, creeaza_token
 from schemas import LoginRequest
+from auth import get_current_user
+from fastapi import Depends, HTTPException
 
 app= FastAPI()
 
 @app.get("/tickets")
-def get_tickets():
+def get_tickets(current_user: User =Depends(get_current_user)):
+    if current_user.rol!="inginer":
+        raise HTTPException(status_code=403, detail="Doar inginerii pot vedea tichetele")
     db=SessionLocal()
     tichete=db.query(Ticket).all()
     db.close()
     return tichete
 
 @app.post("/tickets")
-def create_ticket(ticket: TicketCreate):
+def create_ticket(ticket: TicketCreate,current_user: User=Depends(get_current_user)):
+    if current_user.rol!="creator":
+        raise HTTPException(status_code=403, detail="Doar creatorii pot adauga tichete")
     db=SessionLocal()
     rezultat_llm=clasificare_tichet(ticket.descriere)
     tichet_nou=Ticket(
@@ -42,6 +48,7 @@ def create_ticket(ticket: TicketCreate):
     db.refresh(tichet_nou)
     db.close()
     return tichet_nou
+
 
 @app.post("/users")
 def register(user: UserCreate):

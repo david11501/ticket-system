@@ -14,3 +14,7 @@ class UserCreate(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     parola: str
+
+class TicketUpdate(BaseModel):
+    status: str = None
+    adnotari: str = None

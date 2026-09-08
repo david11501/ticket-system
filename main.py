@@ -5,7 +5,7 @@ from schemas import TicketCreate
 from llm import clasificare_tichet
 from assignare import gaseste_inginer
 from models import User
-from schemas import UserCreate
+from schemas import UserCreate, TicketUpdate
 from auth import hash_parola
 from models import Inginer
 from auth import verifica_parola, creeaza_token
@@ -23,6 +23,15 @@ def get_tickets(current_user: User =Depends(get_current_user)):
     tichete=db.query(Ticket).all()
     db.close()
     return tichete
+
+@app.get("/my-tickets")
+def get_my_tickets(current_user: User=Depends(get_current_user)):
+    if current_user.rol!="inginer":
+        raise HTTPException(status_code=403, detail="Useru-ul nu este un inginer")
+    db=SessionLocal()
+    lista_de_tichete_active=(db.query(Ticket).filter(Ticket.inginer_id==current_user.inginer_id)).all()
+    db.close()
+    return lista_de_tichete_active
 
 @app.post("/tickets")
 def create_ticket(ticket: TicketCreate,current_user: User=Depends(get_current_user)):
@@ -100,3 +109,22 @@ def login(date: LoginRequest):
     except ValueError as e:
         print(f"Erroare: {e}")
         return {"erroare": f"{e}"}
+
+@app.put("/tickets/{id}")
+def update_ticket(id: int, update: TicketUpdate, current_user: User=Depends(get_current_user)):
+    if current_user.rol!="inginer":
+        raise HTTPException(status_code=403, detail="User-ul nu este un inginer.")
+    db=SessionLocal()
+    tichet=db.query(Ticket).filter(Ticket.id==id).first()
+    if not tichet:
+        raise HTTPException(status_code=404, detail="Tichetul nu exista")
+    if tichet.inginer_id!=current_user.inginer_id:
+        raise HTTPException(status_code=403, detail="Nu este id-ul de inginer corect")
+    if update.status!=None:
+        tichet.status=update.status
+    if update.adnotari!=None:
+        tichet.adnotari=update.adnotari
+    db.commit()
+    db.refresh(tichet)
+    db.close()
+    return tichet

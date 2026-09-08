@@ -13,6 +13,7 @@ class Ticket(Base):
     categorie=Column(String, nullable=True)
     sfaturi=Column(String, nullable=True)
     inginer_id=Column(Integer, nullable=True)
+    adnotari=Column(String, nullable=True)
 
 class Inginer(Base):
     __tablename__="ingineri"

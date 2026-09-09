@@ -40,6 +40,7 @@ def create_ticket(ticket: TicketCreate,current_user: User=Depends(get_current_us
     db=SessionLocal()
     rezultat_llm=clasificare_tichet(ticket.descriere)
     tichet_nou=Ticket(
+        creator_id=current_user.id,
         titlu=ticket.titlu,
         descriere=ticket.descriere,
         status="nou",
@@ -128,3 +129,12 @@ def update_ticket(id: int, update: TicketUpdate, current_user: User=Depends(get_
     db.refresh(tichet)
     db.close()
     return tichet
+
+@app.get("/my-history")
+def get_my_history(current_user: User=Depends(get_current_user)):
+    if current_user.rol!="creator":
+        raise HTTPException(status_code=403, detail="Nu sunteti creator.")
+    db=SessionLocal()
+    toate_tichetele=db.query(Ticket).filter(Ticket.creator_id==current_user.id).all()
+    db.close()
+    return toate_tichetele

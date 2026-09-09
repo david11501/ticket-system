@@ -14,6 +14,7 @@ class Ticket(Base):
     sfaturi=Column(String, nullable=True)
     inginer_id=Column(Integer, nullable=True)
     adnotari=Column(String, nullable=True)
+    creator_id=Column(Integer, nullable=True)
 
 class Inginer(Base):
     __tablename__="ingineri"

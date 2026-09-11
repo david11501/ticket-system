@@ -232,7 +232,7 @@ def create_ticket_form(request: Request):
     return templates.TemplateResponse(request=request, name="create-ticket.html")
 
 @app.post("/tickets/create-form")
-def create_ticket_form(request:Request, titlu:str=Form(...), descriere:str=Form(...) ,current_user:User=Depends(get_current_user_cookie)):
+def create_ticket_form_submit(request:Request, titlu:str=Form(...), descriere:str=Form(...) ,current_user:User=Depends(get_current_user_cookie)):
     db=SessionLocal()
     try:
         if current_user.rol!="creator":

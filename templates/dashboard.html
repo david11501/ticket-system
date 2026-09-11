@@ -3,33 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Bine ai venit, {{user.username}}!</h1>
-    <p>Rol: {{user.rol}}</p>
+    <div class="container">
+        <h1>Bine ai venit, {{user.username}}!</h1>
+        <p>Rol: {{user.rol}}</p>
 
-    <h2>Tichete</h2>
-    <ul>
-        {% for tichet in tichete %}
-        <li>
-            {{tichet.titlu}} - {{tichet.status}}
-            {% if tichet.adnotari %}
-                <br>Adnotare: {{tichet.adnotari}}
-            {% endif %}
+        {% if user.rol == "creator" %}
+        <p>
+            <a href="/tickets/create-form" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+                Creeaza un tichet nou
+            </a>
+        </p>
+        {% endif %}
 
-            {% if user.rol=="inginer"%}
-            <form method="post" action="/tickets/{{ tichet.id}}/update-form">
-                <select name="status">
-                    <option value="nou"{% if tichet.status=="nou" %}selected{% endif %}>Nou</option>
-                    <option value="in lucru" {% if tichet.status=="in lucru" %}selected{% endif %}>In lucru</option>
-                    <option value="rezolvat" {% if tichet.status=="rezolvat"%}selected{% endif %}>Rezolvat</option>
-                </select>
-                <input type="text" name="adnotari" placeholder="Adauga adnotare" value="{{ tichet.adnotari or ''}}">
-                <button type="submit">Actualizeaza</button>
-            </form>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
+        {% macro render_tichet(tichet) %}
+            <li>
+                {{tichet.titlu}} - {{tichet.status}}
+                {% if tichet.adnotari %}
+                    <br>Adnotare: {{tichet.adnotari}}
+                {% endif %}
+
+                {% if user.rol=="inginer" %}
+                <form method="post" action="/tickets/{{ tichet.id }}/update-form">
+                    <select name="status">
+                        <option value="nou" {% if tichet.status=="nou" %}selected{% endif %}>Nou</option>
+                        <option value="in lucru" {% if tichet.status=="in lucru" %}selected{% endif %}>In lucru</option>
+                        <option value="rezolvat" {% if tichet.status=="rezolvat" %}selected{% endif %}>Rezolvat</option>
+                    </select>
+                    <input type="text" name="adnotari" placeholder="Adauga adnotare" value="{{ tichet.adnotari or '' }}">
+                    <button type="submit">Actualizeaza</button>
+                </form>
+                {% endif %}
+            </li>
+        {% endmacro %}
+
+        <h2>Tichete noi</h2>
+        <ul>
+            {% for tichet in tichete_noi %}
+                {{ render_tichet(tichet) }}
+            {% else %}
+                <li>Niciun tichet nou.</li>
+            {% endfor %}
+        </ul>
+
+        <h2>In lucru</h2>
+        <ul>
+            {% for tichet in tichete_in_lucru %}
+                {{ render_tichet(tichet) }}
+            {% else %}
+                <li>Niciun tichet in lucru.</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Rezolvate</h2>
+        <ul>
+            {% for tichet in tichete_rezolvate %}
+                {{ render_tichet(tichet) }}
+            {% else %}
+                <li>Niciun tichet rezolvat.</li>
+            {% endfor %}
+        </ul>
+    </div>
 </body>
 </html>

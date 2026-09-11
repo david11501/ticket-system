@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Autentificare</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Autentificare</h1>
-    <form method="post" action="/login-form">
-        <label>Username:</label>
-        <input type="text" name="username" required><br><br>
-        <label>Parola:</label>
-        <input type="password" name="parola" required><br><br>
-        <button type="submit">Autentificare</button>
-    </form>
+    <div class="container">
+        <h1>Autentificare</h1>
+        <form method="post" action="/login-form">
+            <label>Username:</label>
+            <input type="text" name="username" required><br><br>
+            <label>Parola:</label>
+            <input type="password" name="parola" required><br><br>
+            <button type="submit">Autentificare</button>
+        </form>
+    </div>
 </body>
 </html>

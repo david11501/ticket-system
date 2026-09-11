@@ -15,10 +15,13 @@ from fastapi import Depends, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi import Request,Form
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 templates=Jinja2Templates(directory="templates")
 
 app= FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/login-form")
 def login_form(request: Request):
@@ -64,11 +67,10 @@ def get_my_tickets(current_user: User=Depends(get_current_user)):
 
 @app.post("/tickets")
 def create_ticket(ticket: TicketCreate,current_user: User=Depends(get_current_user)):
-
+    db=SessionLocal()
     try:
         if current_user.rol!="creator":
             raise HTTPException(status_code=403, detail="Doar creatorii pot adauga tichete")
-        db=SessionLocal()
         rezultat_llm=clasificare_tichet(ticket.descriere)
         tichet_nou=Ticket(
             creator_id=current_user.id,
@@ -150,13 +152,23 @@ def dashboard(request: Request, current_user: User=Depends(get_current_user_cook
     db=SessionLocal()
     try:
         if current_user.rol=="inginer":
-            tichete=db.query(Ticket).filter(Ticket.inginer_id==current_user.inginer_id).all()
+            query = db.query(Ticket).filter(Ticket.inginer_id==current_user.inginer_id)
         else:
-            tichete=db.query(Ticket).filter(Ticket.creator_id==current_user.id).all()
+            query = db.query(Ticket).filter(Ticket.creator_id==current_user.id)
+
+        tichete_noi = query.filter(Ticket.status=="nou").all()
+        tichete_in_lucru = query.filter(Ticket.status=="in lucru").all()
+        tichete_rezolvate = query.filter(Ticket.status=="rezolvat").all()
+
         return templates.TemplateResponse(
             request=request,
             name="dashboard.html",
-            context={"user":current_user, "tichete":tichete}
+            context={
+                "user": current_user,
+                "tichete_noi": tichete_noi,
+                "tichete_in_lucru": tichete_in_lucru,
+                "tichete_rezolvate": tichete_rezolvate,
+            }
         )
     finally:
         db.close()
@@ -212,5 +224,35 @@ def get_my_history(current_user: User=Depends(get_current_user)):
             raise HTTPException(status_code=403, detail="Nu sunteti creator.")
         toate_tichetele=db.query(Ticket).filter(Ticket.creator_id==current_user.id).all()
         return toate_tichetele
+    finally:
+        db.close()
+
+@app.get("/tickets/create-form")
+def create_ticket_form(request: Request):
+    return templates.TemplateResponse(request=request, name="create-ticket.html")
+
+@app.post("/tickets/create-form")
+def create_ticket_form(request:Request, titlu:str=Form(...), descriere:str=Form(...) ,current_user:User=Depends(get_current_user_cookie)):
+    db=SessionLocal()
+    try:
+        if current_user.rol!="creator":
+            raise HTTPException(status_code=403, detail="User-ul nu este creator.")
+        rezultat_llm=clasificare_tichet(descriere)
+        tichet_nou=Ticket(
+            creator_id=current_user.id,
+            titlu=titlu,
+            descriere=descriere,
+            status="nou",
+            severitate=rezultat_llm["severitate"],
+            categorie=rezultat_llm["categorie"],
+            sfaturi="; ".join(rezultat_llm["sfaturi"])
+        )
+        if rezultat_llm["severitate"]=="major":
+            inginer_gasit=gaseste_inginer(rezultat_llm["categorie"],db)
+            tichet_nou.inginer_id=inginer_gasit.id
+        db.add(tichet_nou)
+        db.commit()
+        db.refresh(tichet_nou)
+        return RedirectResponse(url="/dashboard", status_code=303)
     finally:
         db.close()

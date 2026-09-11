@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Creeaza tichet</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Creeaza un tichet nou</h1>
+        <form method="post" action="/tickets/create-form">
+            <label>Titlu:</label><br>
+            <input type="text" name="titlu" required><br><br>
+            <label>Descriere:</label><br>
+            <textarea name="descriere" rows="5" required></textarea><br><br>
+            <button type="submit">Creeaza tichet</button>
+        </form>
+        <br>
+        <a href="/dashboard">Inapoi la dashboard</a>
+    </div>
+</body>
+</html>

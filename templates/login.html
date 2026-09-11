@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Autentificare</title>
+    {% if eroare %}
+    <p style="color: red;">{{ eroare }}</p>
+    {% endif %}
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>

@@ -23,20 +23,27 @@ app= FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.get("/")
+def root():
+    return RedirectResponse(url="/login-form")
+
 @app.get("/login-form")
 def login_form(request: Request):
     return templates.TemplateResponse(request=request, name="login.html")
 
 @app.post("/login-form")
-def login_form_submit(username:str=Form(...), parola:str=Form(...)):
-    db=SessionLocal()
+def login_form_submit(request: Request, username: str = Form(...), parola: str = Form(...)):
+    db = SessionLocal()
     try:
-        user_gasit=db.query(User).filter(User.username==username).first()
+        user_gasit = db.query(User).filter(User.username == username).first()
         if not user_gasit or not verifica_parola(parola, user_gasit.password_hash):
-            db.close()
-            return {"eroare":"Username sau parola incorecta"}
-        token=creeaza_token(user_gasit.username)
-        response=RedirectResponse(url="/dashboard", status_code=303)
+            return templates.TemplateResponse(
+                request=request,
+                name="login.html",
+                context={"eroare": "Username sau parola incorecta"}
+            )
+        token = creeaza_token(user_gasit.username)
+        response = RedirectResponse(url="/dashboard", status_code=303)
         response.set_cookie(key="access_token", value=token, httponly=True)
         return response
     finally:
